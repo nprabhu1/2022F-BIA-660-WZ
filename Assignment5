@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Nov  6 07:31:52 2022
+
+@author: nilesh
+"""
+import requests
+from bs4 import BeautifulSoup
+import spacy
+#import org_per
+
+nlp = spacy.load("en_core_web_lg")
+url = "https://www.gutenberg.org/cache/epub/2641/pg2641-images.html"
+request = requests.get(url)
+
+r = request.text
+soup = BeautifulSoup(r, 'html.parser')
+text = soup.get_text()
+doc = nlp(text)
+assert doc.has_annotation("SENT_START")
+sentences = list(doc.sents)
+
+
+print("+++++++++++++++++++++")
+
+print("1) Number of Tokens: " , len([token.text for token in doc]))
+print("2) Number of Verbs:", len([token.lemma_ for token in doc if token.pos_ == "VERB"]))
+
+ents = [(e.text) for e in doc.ents]
+#print(ents)
+
+maxcount = 0
+res = ents[0]
+for i in ents:
+    freq = ents.count(i)
+    if freq > maxcount:
+        maxcount = freq
+        res = i
+      
+# printing result
+print("3) Most frequent Named Entity is : " + str(res))
+print("4) Number of Sentences: ", len(sentences))
+
+print("++++++++++++++++++++")
+
+sent_ten_words = []
+for sent in doc.sents:
+    if len(sent.text) > 10:
+        sent_ten_words.append(sent.text)
+
+#print("Sentences with more than 10 words : ", sent_ten_words)
+
+#Of all the sentences in the text that are at least 10 words in length, which two are most similar (but not identical)?
+
+max_similarity = 0.0
+most_similar = None, None
+
+print("5)")
+for i, sent in enumerate(sent_ten_words):
+    sent1 = nlp(sent)
+    for j, other in enumerate(sent_ten_words):
+        sent2 = nlp(other)
+        if j <= i:
+            continue
+        similarity = sent1.similarity(sent2)
+        if similarity > max_similarity:
+            max_similarity = similarity
+            most_similar = sent, other
+print("Most similar sentences are:")
+print(f"-> '{most_similar[0]}'")
+print("and")
+print(f"-> '{most_similar[1]}'")
+print(f"with a similarity of {max_similarity}")
+
+
+
+print("++++++++++++++++++++")
+#6. What is the vector representation of the first word in the 15th sentence in the document?
+
+print("6)")
+
+fifteenth_sentence = sentences[14]
+token15 = nlp(fifteenth_sentence)
+for token in token15:
+     print(token.text, token.has_vector, token.vector_norm, token.is_oov)
+
+print("++++++++++++++++++++")

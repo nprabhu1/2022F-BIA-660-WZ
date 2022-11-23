@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Nov 20 01:10:58 2022
+
+@author: nilesh
+"""
+
+
+import csv
+
+inverted_idx = {}
+
+with open('/Users/nilesh/Desktop/JEOPARDY_CSV.csv') as f:
+    reader = csv.reader(f, delimiter=",")
+    next(reader)
+    for i, row in enumerate(reader):
+        text = " ".join(row).split()
+        text = [word.lower() for word in text]
+        text = list(set(text))  # deduplication
+        punc = '''!()-[]{};:'"\, <>./?@#$%^&*_~'''
+        for word in text:
+            if word in punc:
+                text = text.remove(word)
+            if word not in inverted_idx:
+                inverted_idx[word] = []
+            inverted_idx[word].append(i)
+        print(inverted_idx)
